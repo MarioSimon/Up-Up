@@ -15,6 +15,8 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private float jumpForce;
     [SerializeField] private float rotationSpeed;
 
+    public PlayerState playerState = PlayerState.Grounded;
+
     private Rigidbody rb;
     private Animator playerAnimator;
     private Vector3 forceDirection = Vector3.zero;
@@ -49,31 +51,8 @@ public class PlayerController : MonoBehaviour
         look.Disable();
     }
 
-    private void FixedUpdate()
+    private void Update()
     {
-        
-        forceDirection += movement.ReadValue<Vector2>().x * movementForce * GetCameraRight(playerCamera);
-        forceDirection += movement.ReadValue<Vector2>().y * movementForce * GetCameraForward(playerCamera);
-
-        rb.AddForce(forceDirection, ForceMode.VelocityChange);
-        forceDirection = Vector3.zero;
-
-        if (rb.velocity.y < 0)
-        {
-            rb.velocity -= 7.5f * Vector3.down * Physics.gravity.y * Time.fixedDeltaTime;
-            //rb.AddForce(Physics.gravity * 10 * Time.fixedDeltaTime);
-        }
-
-        Vector3 horizontalVelocity = rb.velocity;
-        horizontalVelocity.y = 0;
-
-        if (horizontalVelocity.sqrMagnitude > maxSpeed * maxSpeed)
-        {
-            rb.velocity = horizontalVelocity.normalized * maxSpeed + Vector3.up * rb.velocity.y;
-        }
-
-        LookAt();
-
         followTarget.rotation *= Quaternion.AngleAxis(look.ReadValue<Vector2>().x * rotationSpeed, Vector3.up);
         followTarget.rotation *= Quaternion.AngleAxis(look.ReadValue<Vector2>().y * rotationSpeed, Vector3.right);
 
@@ -94,7 +73,43 @@ public class PlayerController : MonoBehaviour
 
         followTarget.position = transform.position;
         followTarget.position += Vector3.up * 1.5f;
+    }
 
+    private void FixedUpdate()
+    {
+        forceDirection += movement.ReadValue<Vector2>().x * movementForce * GetCameraRight(playerCamera);
+        forceDirection += movement.ReadValue<Vector2>().y * movementForce * GetCameraForward(playerCamera);
+
+        rb.AddForce(forceDirection, ForceMode.VelocityChange);
+        forceDirection = Vector3.zero;
+
+        if (rb.velocity.y < 0)
+        {
+            if (playerState != PlayerState.WallRunning)
+            {
+                rb.AddForce(Physics.gravity * rb.mass * 7.5f);
+            }            
+            else 
+            {
+                rb.AddForce(Physics.gravity * rb.mass / 4f);
+            }
+        }
+
+        Vector3 horizontalVelocity = rb.velocity;
+        horizontalVelocity.y = 0;
+
+        if (horizontalVelocity.sqrMagnitude > maxSpeed * maxSpeed)
+        {
+            rb.velocity = horizontalVelocity.normalized * maxSpeed + Vector3.up * rb.velocity.y;
+        }
+
+        LookAt();
+    }
+
+    private void LateUpdate()
+    {
+        if (playerState != PlayerState.Grounded)
+          IsGrounded();
     }
 
     private void LookAt()
@@ -130,23 +145,28 @@ public class PlayerController : MonoBehaviour
 
     private void DoJump(InputAction.CallbackContext obj)
     {
-        if (!IsGrounded()) { return; }
+        if (playerState == PlayerState.Jumping) { return; }
         //playerAnimator.SetTrigger("jump");
+        playerState = PlayerState.Jumping;
+        rb.velocity = rb.velocity + Vector3.up * 0.1f;
         forceDirection += Vector3.up * jumpForce;
         
     }
 
-    public bool IsGrounded()
+    public void IsGrounded()
     {
         Ray ray = new Ray(this.transform.position + Vector3.up * 0.1f, Vector3.down);
-
-        if (Physics.Raycast(ray, out RaycastHit hit, 1.3f) || !rb.useGravity) //cuando el origen este en 0 0 0 bajar a 0.3
+        
+        if (Physics.Raycast(ray, out RaycastHit hit, 1.3f) && rb.velocity.y == 0) //cuando el origen este en 0 0 0 bajar a 0.3
         {
-            return true;
-        }
-        else
-        {
-            return false;
+            playerState = PlayerState.Grounded;
         }
     }     
+}
+
+public enum PlayerState
+{
+    Grounded = 0,
+    Jumping = 1,
+    WallRunning = 2
 }
