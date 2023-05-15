@@ -6,7 +6,7 @@ public class RunableWall : MonoBehaviour
 {
     private void OnTriggerEnter(Collider other)
     {
-        if (other.tag == "Player")
+        if (other.tag == "Player" )
         {
             other.GetComponent<PlayerController>().playerState = PlayerState.WallRunning;
         }
