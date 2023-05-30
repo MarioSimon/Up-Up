@@ -157,7 +157,7 @@ public class PlayerController : MonoBehaviour
     {
         Ray ray = new Ray(this.transform.position + Vector3.up * 0.1f, Vector3.down);
         
-        if (Physics.Raycast(ray, out RaycastHit hit, 1.3f) && rb.velocity.y == 0) //cuando el origen este en 0 0 0 bajar a 0.3
+        if (/*Physics.Raycast(ray, out RaycastHit hit, 1.3f) &&*/ rb.velocity.y == 0) //cuando el origen este en 0 0 0 bajar a 0.3
         {
             playerState = PlayerState.Grounded;
         }
