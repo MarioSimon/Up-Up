@@ -14,11 +14,10 @@ public class PlayerAnimation : MonoBehaviour
     {
         playerAnimator = GetComponent<Animator>();
         rb = GetComponent<Rigidbody>();
-        
     }
 
     void Update()
     {
-        //playerAnimator.SetFloat("speed", rb.velocity.magnitude / maxSpeed);
+        playerAnimator.SetFloat("speed", rb.velocity.magnitude / maxSpeed);
     }
 }

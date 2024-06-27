@@ -146,7 +146,11 @@ public class PlayerController : MonoBehaviour
     private void DoJump(InputAction.CallbackContext obj)
     {
         if (playerState == PlayerState.Jumping) { return; }
-        //playerAnimator.SetTrigger("jump");
+        if (playerAnimator != null)
+        {
+            playerAnimator.SetTrigger("jump");
+        }
+        
         playerState = PlayerState.Jumping;
         rb.velocity = rb.velocity + Vector3.up * 0.1f;
         forceDirection += Vector3.up * jumpForce;
@@ -160,6 +164,11 @@ public class PlayerController : MonoBehaviour
         if (/*Physics.Raycast(ray, out RaycastHit hit, 1.3f) &&*/ rb.velocity.y == 0) //cuando el origen este en 0 0 0 bajar a 0.3
         {
             playerState = PlayerState.Grounded;
+            if (playerAnimator != null)
+            {
+                playerAnimator.SetTrigger("grounded");
+            }
+            
         }
     }     
 }
