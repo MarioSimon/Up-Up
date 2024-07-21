@@ -73,6 +73,11 @@ public class PlayerController : MonoBehaviour
 
         followTarget.position = transform.position;
         followTarget.position += Vector3.up * 1.5f;
+
+        if (Input.GetKeyDown(KeyCode.Escape))
+        {
+            FindObjectOfType<ExitMenu>().ToggleExitWindow();
+        }
     }
 
     private void FixedUpdate()
@@ -87,11 +92,11 @@ public class PlayerController : MonoBehaviour
         {
             if (playerState != PlayerState.WallRunning)
             {
-                rb.AddForce(Physics.gravity * rb.mass * 7.5f);
+                rb.AddForce(Physics.gravity * rb.mass, ForceMode.Acceleration);
             }            
             else 
             {
-                rb.AddForce(Physics.gravity * rb.mass / 4f);
+                rb.AddForce(Physics.gravity * rb.mass / 150f, ForceMode.Acceleration);
             }
         }
 
@@ -145,13 +150,13 @@ public class PlayerController : MonoBehaviour
 
     private void DoJump(InputAction.CallbackContext obj)
     {
-        if (playerState == PlayerState.Jumping) { return; }
+        if (playerState == PlayerState.Jumping && (rb.velocity.y <= -0.01 || rb.velocity.y > 0)) { return; }
         if (playerAnimator != null)
         {
             playerAnimator.SetTrigger("jump");
         }
-        
-        playerState = PlayerState.Jumping;
+
+        playerState = PlayerState.Jumping; 
         rb.velocity = rb.velocity + Vector3.up * 0.1f;
         forceDirection += Vector3.up * jumpForce;
         
@@ -159,16 +164,13 @@ public class PlayerController : MonoBehaviour
 
     public void IsGrounded()
     {
-        Ray ray = new Ray(this.transform.position + Vector3.up * 0.1f, Vector3.down);
-        
-        if (/*Physics.Raycast(ray, out RaycastHit hit, 1.3f) &&*/ rb.velocity.y == 0) //cuando el origen este en 0 0 0 bajar a 0.3
+        if (rb.velocity.y == 0) //No exactamente 'grounded' pero sirve
         {
             playerState = PlayerState.Grounded;
             if (playerAnimator != null)
             {
                 playerAnimator.SetTrigger("grounded");
             }
-            
         }
     }     
 }
